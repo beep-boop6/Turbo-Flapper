@@ -1,16 +1,16 @@
 ﻿namespace Turbo_Flapper
 {
-    partial class GameView
+    partial class GameForm
     {
         /// <summary>
-        /// Обязательная переменная конструктора.
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        /// Освободить все используемые ресурсы.
+        /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">истинно, если управляемый ресурс должен быть удален; иначе ложно.</param>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -20,11 +20,11 @@
             base.Dispose(disposing);
         }
 
-        #region Код, автоматически созданный конструктором форм Windows
+        #region Windows Form Designer generated code
 
         /// <summary>
-        /// Требуемый метод для поддержки конструктора — не изменяйте 
-        /// содержимое этого метода с помощью редактора кода.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
@@ -57,7 +57,6 @@
             // gameTimer
             // 
             this.gameTimer.Interval = 20;
-            this.gameTimer.Tick += new System.EventHandler(this.gameTimerEvent);
             // 
             // flapper
             // 
@@ -113,7 +112,7 @@
             this.startLabel.TabIndex = 5;
             this.startLabel.Text = "Press ENTER to start";
             // 
-            // Form1
+            // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -125,12 +124,11 @@
             this.Controls.Add(this.ground);
             this.Controls.Add(this.pipeBottom);
             this.Controls.Add(this.pipeTop);
-            this.Name = "Form1";
+            this.Name = "GameForm";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Turbo Flapper";
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.gameKeyDown);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.gameKeyUp);
+            this.Load += new System.EventHandler(this.GameForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.flapper)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ground)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pipeBottom)).EndInit();

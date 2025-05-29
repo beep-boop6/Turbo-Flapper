@@ -1,22 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Turbo_Flapper
 {
     static class Program
     {
-        /// <summary>
-        /// Главная точка входа для приложения.
-        /// </summary>
         [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GameView());
+
+            // Создаем форму
+            var view = new GameForm();
+
+            // Получаем размеры труб после инициализации формы
+            var topPipeSize = view.PipeTop.Size;
+            var bottomPipeSize = view.PipeBottom.Size;
+
+            // Создаем презентер
+            var presenter = new GamePresenter(view, topPipeSize, bottomPipeSize);
+
+            // Настраиваем обработчик таймера
+            view.GameTimer.Tick += (s, e) => presenter.Update();
+
+            // Инициализируем
+            presenter.Initialize();
+
+            Application.Run(view);
         }
     }
 }
