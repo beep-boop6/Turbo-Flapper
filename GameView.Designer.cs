@@ -1,6 +1,6 @@
 ﻿namespace Turbo_Flapper
 {
-    partial class Form1
+    partial class GameView
     {
         /// <summary>
         /// Обязательная переменная конструктора.
@@ -64,9 +64,9 @@
             this.flapper.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.flapper.BackColor = System.Drawing.Color.Transparent;
             this.flapper.Image = global::Turbo_Flapper.Properties.Resources.bird;
-            this.flapper.Location = new System.Drawing.Point(73, 571);
+            this.flapper.Location = new System.Drawing.Point(69, 562);
             this.flapper.Name = "flapper";
-            this.flapper.Size = new System.Drawing.Size(104, 84);
+            this.flapper.Size = new System.Drawing.Size(100, 75);
             this.flapper.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.flapper.TabIndex = 1;
             this.flapper.TabStop = false;

@@ -73,16 +73,6 @@ namespace Turbo_Flapper.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap gratis_png_flappy_bird_blue_fly_the_bird_juego_bird_thumbnail {
-            get {
-                object obj = ResourceManager.GetObject("gratis-png-flappy-bird-blue-fly-the-bird-juego-bird-thumbnail", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap ground {
             get {
                 object obj = ResourceManager.GetObject("ground", resourceCulture);
