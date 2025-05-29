@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Media;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,8 +12,9 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Turbo_Flapper
 {
-    public partial class Form1 : Form
+    public partial class GameView : Form
     {
+        private SoundPlayer gameOverSound;
         private float pipeSpeed = 8f;
         private int gravity = 10;
         private int score = 0;
@@ -22,6 +24,14 @@ namespace Turbo_Flapper
         private Size topPipeSize;
         private Size bottomPipeSize;
 
+        private List<Bonus> activeBonuses = new List<Bonus>();
+        private Size bonusSize = new Size(50, 50);
+        private double bonusSpawnProbability = 0.3; // 30% шанс появления бонуса
+        private int initialPipeGap = 200; // сохраняем начальный промежуток
+        private Size flapperInitialSize; // начальный размер птицы
+        private BonusType? activeBonusEffect = null; // текущий активный бонус
+        private int activeBonusDuration = 0; // длительность в очках
+
         // Паттерн "Состояние"
         private GameState currentState = GameState.Menu;
 
@@ -30,12 +40,13 @@ namespace Turbo_Flapper
         private List<Pipe> activePipes = new List<Pipe>();
         private int pipeSpawnTimer = 0;
         private const int pipeSpawnInterval = 1800 / 16; // Интервал в кадрах (1800 мс)
-        private const int pipeGap = 200; // Фиксированный промежуток между трубами
+        private int pipeGap = 200; // Фиксированный промежуток между трубами
 
-        public Form1()
+        public GameView()
         {
             InitializeComponent();
             flapperInitialTop = flapper.Top;
+            flapperInitialSize = flapper.Size;
             this.DoubleBuffered = true;
 
             // Сохраняем размеры труб
@@ -44,6 +55,7 @@ namespace Turbo_Flapper
 
             // Инициализация пула труб с сохраненными размерами
             pipePool = new PipePool(topPipeSize, bottomPipeSize);
+
 
             // Начальное состояние
             SetGameState(GameState.Menu);
@@ -106,6 +118,7 @@ namespace Turbo_Flapper
 
         private void UpdatePipes()
         {
+            int newScore = score;
             for (int i = activePipes.Count - 1; i >= 0; i--)
             {
                 var pipe = activePipes[i];
@@ -114,13 +127,36 @@ namespace Turbo_Flapper
                 // Обновление счета
                 if (pipe.Position.X + pipe.Size.Width < flapper.Left && !pipe.Passed)
                 {
-                    score++;
-                    scoreText.Text = "Score: " + score/2;
+                    newScore++;
                     pipe.Passed = true;
                 }
             }
+            score = newScore;
+            scoreText.Text = "Score: " + score / 2;
 
-            // Перерисовка
+            // Обновление позиций бонусов
+            for (int i = activeBonuses.Count - 1; i >= 0; i--)
+            {
+                Bonus bonus = activeBonuses[i];
+                bonus.Position = new Point(bonus.Position.X - (int)pipeSpeed, bonus.Position.Y);
+
+                // Удаление бонусов, вышедших за экран
+                if (bonus.Position.X + bonus.Size.Width < 0)
+                {
+                    activeBonuses.RemoveAt(i);
+                }
+            }
+
+            // Обновление длительности бонуса
+            if (activeBonusEffect != null)
+            {
+                activeBonusDuration--;
+                if (activeBonusDuration <= 0)
+                {
+                    RemoveActiveBonusEffect();
+                }
+            }
+
             Invalidate();
         }
 
@@ -140,6 +176,27 @@ namespace Turbo_Flapper
                 topY + topPipe.Size.Height + pipeGap
             );
 
+            if (random.NextDouble() < bonusSpawnProbability)
+            {
+                BonusType type = (BonusType)random.Next(0, 4);
+
+                // Позиция бонуса - в промежутке между трубами
+                int minY = topY + topPipeSize.Height + bonusSize.Height / 2;
+                int maxY = topY + topPipeSize.Height + pipeGap - bonusSize.Height;
+
+                if (maxY > minY) // Проверка, чтобы бонус поместился
+                {
+                    int bonusY = random.Next(minY, maxY);
+                    Bonus bonus = new Bonus()
+                    {
+                        Position = new Point(this.ClientSize.Width, bonusY),
+                        Size = bonusSize,
+                        Type = type,
+                        IsActive = true
+                    };
+                    activeBonuses.Add(bonus);
+                }
+            }
             // Добавление в активный список
             activePipes.Add(topPipe);
             activePipes.Add(bottomPipe);
@@ -164,7 +221,80 @@ namespace Turbo_Flapper
                     return;
                 }
             }
+
+            for (int i = activeBonuses.Count - 1; i >= 0; i--)
+            {
+                Bonus bonus = activeBonuses[i];
+                Rectangle bonusRect = new Rectangle(bonus.Position, bonus.Size);
+                if (flapper.Bounds.IntersectsWith(bonusRect))
+                {
+                    ApplyBonusEffect(bonus.Type);
+                    activeBonuses.RemoveAt(i);
+                    break;
+                }
+            }
         }
+
+        private void ApplyBonusEffect(BonusType type)
+        {
+            // Отменяем предыдущий бонус
+            RemoveActiveBonusEffect();
+
+            activeBonusEffect = type;
+            activeBonusDuration = 5; // Длительность 5 очков
+
+            switch (type)
+            {
+                case BonusType.ReduceFlapperSize:
+                    // Уменьшение размера птицы на 20%
+                    flapper.Size = new Size(
+                        (int)(flapperInitialSize.Width * 0.8),
+                        (int)(flapperInitialSize.Height * 0.8)
+                    );
+                    break;
+
+                case BonusType.IncreaseGap:
+                    // Увеличение расстояния между трубами на 100px
+                    pipeGap = initialPipeGap + 100;
+                    break;
+
+                case BonusType.IncreaseFlapperSize:
+                    // Увеличение размера птицы на 10%
+                    flapper.Size = new Size(
+                        (int)(flapperInitialSize.Width * 1.1),
+                        (int)(flapperInitialSize.Height * 1.1)
+                    );
+                    break;
+
+                case BonusType.DecreaseGap:
+                    // Уменьшение расстояния между трубами на 25px
+                    pipeGap = initialPipeGap - 25;
+                    break;
+            }
+        }
+
+        private void RemoveActiveBonusEffect()
+        {
+            if (activeBonusEffect == null) return;
+
+            // Восстановление исходных параметров
+            switch (activeBonusEffect.Value)
+            {
+                case BonusType.ReduceFlapperSize:
+                case BonusType.IncreaseFlapperSize:
+                    flapper.Size = flapperInitialSize;
+                    break;
+
+                case BonusType.IncreaseGap:
+                case BonusType.DecreaseGap:
+                    pipeGap = initialPipeGap;
+                    break;
+            }
+
+            activeBonusEffect = null;
+            activeBonusDuration = 0;
+        }
+
 
         private void gameKeyDown(object sender, KeyEventArgs e)
         {
@@ -206,6 +336,9 @@ namespace Turbo_Flapper
                 pipePool.ReturnPipe(pipe);
             }
             activePipes.Clear();
+            activeBonuses.Clear();
+            RemoveActiveBonusEffect();
+            pipeGap = initialPipeGap;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -220,6 +353,25 @@ namespace Turbo_Flapper
                     e.Graphics.DrawImage(pipe.IsTop ? Properties.Resources.pipedown : Properties.Resources.pipe,
                         new Rectangle(pipe.Position, pipe.Size));
                 }
+
+                foreach (var bonus in activeBonuses)
+                {
+                    Color color = Color.Gold;
+                    switch (bonus.Type)
+                    {
+                        case BonusType.ReduceFlapperSize: color = Color.Blue; break;
+                        case BonusType.IncreaseGap: color = Color.Green; break;
+                        case BonusType.IncreaseFlapperSize: color = Color.Red; break;
+                        case BonusType.DecreaseGap: color = Color.Purple; break;
+                    }
+
+                    using (SolidBrush brush = new SolidBrush(color))
+                    {
+                        e.Graphics.FillEllipse(brush,
+                            bonus.Position.X, bonus.Position.Y,
+                            bonus.Size.Width, bonus.Size.Height);
+                    }
+                }
             }
         }
     }
@@ -230,6 +382,22 @@ namespace Turbo_Flapper
         Menu,
         Playing,
         GameOver
+    }
+
+    public class Bonus
+    {
+        public Point Position { get; set; }
+        public Size Size { get; set; }
+        public BonusType Type { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public enum BonusType
+    {
+        ReduceFlapperSize,    // Уменьшение размера птицы
+        IncreaseGap,         // Увеличение расстояния между трубами
+        IncreaseFlapperSize,  // Увеличение размера птицы
+        DecreaseGap          // Уменьшение расстояния между трубами
     }
 
     // Класс для представления трубы
