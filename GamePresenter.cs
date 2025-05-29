@@ -224,7 +224,7 @@ namespace Turbo_Flapper
             RemoveActiveBonusEffect();
 
             _model.ActiveBonusEffect = type;
-            _model.ActiveBonusDuration = 5; // Длительность 5 очков
+            _model.ActiveBonusDuration = 250; // Длительность 5 очков
 
             switch (type)
             {
