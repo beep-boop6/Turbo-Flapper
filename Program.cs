@@ -16,7 +16,7 @@ namespace Turbo_Flapper
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new StartScreen());
+            Application.Run(new Form1());
         }
     }
 }

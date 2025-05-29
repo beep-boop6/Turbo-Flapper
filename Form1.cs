@@ -13,12 +13,14 @@ namespace Turbo_Flapper
 {
     public partial class Form1 : Form
     {
-        private int pipeSpeed = 8;
+        private float pipeSpeed = 8f;
         private int gravity = 10;
         private int score = 0;
         private int flapperInitialTop;
         private bool gameOver = false;
         private Random random = new Random();
+        private Size topPipeSize;
+        private Size bottomPipeSize;
 
         // Паттерн "Состояние"
         private GameState currentState = GameState.Menu;
@@ -34,15 +36,14 @@ namespace Turbo_Flapper
         {
             InitializeComponent();
             flapperInitialTop = flapper.Top;
-
-            // Включение двойной буферизации для устранения мерцания
             this.DoubleBuffered = true;
 
-            // Инициализация пула труб
-            pipePool = new PipePool(
-                new Size(pipeTop.Width, pipeTop.Height),
-                new Size(pipeBottom.Width, pipeBottom.Height)
-            );
+            // Сохраняем размеры труб
+            topPipeSize = new Size(pipeTop.Width, pipeTop.Height);
+            bottomPipeSize = new Size(pipeBottom.Width, pipeBottom.Height);
+
+            // Инициализация пула труб с сохраненными размерами
+            pipePool = new PipePool(topPipeSize, bottomPipeSize);
 
             // Начальное состояние
             SetGameState(GameState.Menu);
@@ -99,7 +100,7 @@ namespace Turbo_Flapper
             // Увеличение скорости каждые 5 очков
             if (score % 5 == 0 && score != 0)
             {
-                pipeSpeed += 1;
+                pipeSpeed += 0.05f;
             }
         }
 
@@ -108,21 +109,13 @@ namespace Turbo_Flapper
             for (int i = activePipes.Count - 1; i >= 0; i--)
             {
                 var pipe = activePipes[i];
-                pipe.Position = new Point(pipe.Position.X - pipeSpeed, pipe.Position.Y);
-
-                // Проверка выхода за пределы экрана
-                if (pipe.Position.X < -pipe.Size.Width)
-                {
-                    pipePool.ReturnPipe(pipe);
-                    activePipes.RemoveAt(i);
-                    continue;
-                }
+                pipe.Position = new Point(pipe.Position.X - (int)pipeSpeed, pipe.Position.Y);
 
                 // Обновление счета
                 if (pipe.Position.X + pipe.Size.Width < flapper.Left && !pipe.Passed)
                 {
                     score++;
-                    scoreText.Text = "Score: " + score;
+                    scoreText.Text = "Score: " + score/2;
                     pipe.Passed = true;
                 }
             }
@@ -134,7 +127,7 @@ namespace Turbo_Flapper
         private void SpawnPipes()
         {
             // Генерация позиции для верхней трубы
-            int topY = random.Next(-539, -56);
+            int topY =  random.Next(-539, -56);
 
             // Создание пары труб
             var topPipe = pipePool.GetPipe(true);

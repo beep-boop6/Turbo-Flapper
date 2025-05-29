@@ -95,7 +95,7 @@
             // pipeTop
             // 
             this.pipeTop.Image = global::Turbo_Flapper.Properties.Resources.pipedown;
-            this.pipeTop.Location = new System.Drawing.Point(636, -351);
+            this.pipeTop.Location = new System.Drawing.Point(636, -274);
             this.pipeTop.Name = "pipeTop";
             this.pipeTop.Size = new System.Drawing.Size(141, 680);
             this.pipeTop.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
